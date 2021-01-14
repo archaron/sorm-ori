@@ -1,0 +1,52 @@
+TasksUNI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS UNIControlTaskRequest,
+    UNIControlTaskResponse;
+
+IMPORTS TAGGED
+    FROM Classification
+
+    UserID,
+    UserTechnicalIdentifier
+    FROM IdentifiersORI
+
+    TelcoList,
+    ObjectUNI
+    FROM Tasks;
+
+UNIControlTaskRequest ::= CHOICE {
+ create-uni [0] CreateUNIRequest, --- запрос на создание объекта наблюдения и постановки его на контроль
+ drop-uni [1] DropUNIRequest      --- запрос на снятие объекта наблюдения с контроля и удаление объекта наблюдения
+}
+
+UNIControlTaskResponse ::= CHOICE {
+ create-uni [0] CreateUNIResponse, --- ответ на запрос создания объекта наблюдения и постановки его на контроль
+ drop-uni [1] DropUNIResponse      --- ответ на запрос снятия объекта наблюдения с контроля и удаление объекта наблюдения
+}
+
+CreateUNIRequest ::= SEQUENCE {
+ uni-id ObjectUNI,              --- идентификатор объекта наблюдения, переданный ПУ
+ uni-criteria UNIParameterORI,  --- критерии отбора для объекта наблюдения
+ content-load BOOLEAN,          --- режим выгрузки содержимого (true - статистика + содержимое; false - только статистика)
+ telcos TelcoList OPTIONAL      --- список ИС ОРИ (других обслуживаемых ОРИ)
+}
+
+UNIParameterORI ::= CHOICE {
+ user-id [0] UserID,                                    --- идентификатор пользователя в системе (имя пользователя)
+ user-technical-identifier [1] UserTechnicalIdentifier, --- технические данные, идентифицирующие пользователя
+ resource-name (2) UTF8String (SIZE (1.. 4096))         --- наименование ресурса
+}
+
+CreateUNIResponse ::= SEQUENCE {
+ uni-successful        BOOLEAN,                             --- признак успешной постановки объекта наблюдения на контроль
+ uni-error-description UTF8String (SIZE (1.. 256)) OPTIONAL --- краткое описание ошибки, если обнаружена
+}
+
+DropUNIRequest ::= ObjectUNI --- идентификатор объекта наблюдения для снятия с контроля
+
+DropUNIResponse::= SEQUENCE {
+ uni-successful        BOOLEAN,                             --- признак успешного снятия объекта наблюдения с контроля
+ uni-error-description UTF8String (SIZE (1.. 256)) OPTIONAL --- краткое описание ошибки, если обнаружена
+}
+END

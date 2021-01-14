@@ -1,0 +1,39 @@
+IdentifiersORI DEFINITIONS IMPLICIT TAGS::=
+BEGIN
+
+EXPORTS UserID,
+    UserIdentifier,
+    UserTechnicalIdentifier,
+    ResourceIdentifier,
+    ResourceName,
+    ORIStreamID;
+    UserIdentifier::= SEQUENCE {
+  user-id [0] UserID,                   --- идентификатор пользователя в системе (имя пользователя)
+  user-type [1] INTEGER (0.. 65535)     --- тип пользователя (расшифровывается по справочнику)
+}
+
+UserTechnicalIdentifier::= CHOICE {
+  ip-address [0] UserIPAddress,                     --- ip-адрес и порт
+  msisdn [1] UTF8String (SIZE (1.. 64)),            --- номер телефона
+  email [2] UTF8String (SIZE (1.. 256)),            --- электронная почта
+  program-name  [3]  UTF8String (SIZE (1.. 1024)),  --- имя програмы клиента
+  other [4] UTFSString (SIZE (1.. 1024))            --- прочая техническая информация
+}
+
+UserIPAddress::= SEQUENCE {
+  ip-address [0] UTF8String (SIZE (1.. 64)), --- ip-адрес
+  ip-port [1] INTEGER (0.. 65535) OPTIONAL   --- TCP/UDP порт
+}
+
+UserID::= UTF8String (SIZE (1.. 128))
+
+ResourceIdentifier::= SEQUENCE {
+  resource-name [0] ResourceName,                   --- наименование ресурса
+  resource-type [1] INTEGER (0.. 65535) OPTIONAL    --- тип ресурса (расшифровывается по справочнику)
+}
+
+ResourceName::= UTF8String (SIZE (1.. 4096))
+
+ORIStreamID::= OCTET STRING (SIZE (8))
+
+END

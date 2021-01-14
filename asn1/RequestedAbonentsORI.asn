@@ -1,0 +1,53 @@
+RequestedAbonentsORI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS RequestedAbonentsORI;
+
+IMPORTS TAGGED,
+   sorm-request-abonent-ori
+   FROM Classification
+   UserID
+   FROM IdentifiersORI;
+
+RequestedAbonentORI := SEQUENCE {
+ id TAGGED.&id ({RequestedAbonentORIVariants}),
+ data TAGGED.&Data ({RequestedAbonentORIVariants)(@id})
+}
+
+RequestedAbonentORIVariants TAGGED ::= {
+ requestedORIabonent
+}
+
+requestedORIabonent TAGGED ::= {
+ OID {sorm-request-abonent-ori}
+ DATA CHOICE {
+  user-id [0] UserlD,                           --- идентификатор пользователя
+  nick-name [1] UTF8String (SIZE (1 .. 1024)),  --- псевдоним пользователя
+  given-name [2] UTF8String (SIZE (1 .. 128)),  --- имя
+  initial [3] UTF8String (SIZE (1 .. 128)),     --- отчество
+  family-name [4] UTF8String (SIZE (1 .. 128)), --- фамилия
+  address [5]  RequestedAddressORI,             --- адресные данные
+  passport [6] RequestedPassportORI,            --- паспортные данные
+  relatives [7] UserID,                         --- идентификатор родственника
+  msisdn [8]    UTF8String (SIZE (1 .. 64)),    --- номер телефона пользователя
+  email [9]    UTF8String (SIZE (1 .. 256)),    --- электронная почта пользователя
+  im-id [10]   UTF8String (SIZE (1 .. 256)),    --- идентификатор в сетях мгновенного обмена сообщениями
+  contract [11] UTF8String (SIZE (1 .. 64))     --- номер договора
+ }
+}
+
+RequestedAddressORI ::= SEQUENCE {
+ country [0] UTF8String (SIZE (1 .. 128)) OPTIONAL,  --- страна
+ region [1] UTF8String (SIZE (1 .. 128)) OPTIONAL,   --- область
+ city [2] UTF8String (SIZE (1 .. 128)) OPTIONAL,     --- город, поселок, деревня, населенный пункт
+ street [3] UTF8String (SIZE (1 .. 128)) OPTIONAL,   --- улица
+ building [4] UTF8String (SIZE (1 .. 128)) OPTIONAL, --- дом, строение
+ apartment [5] UTF8String (SIZE (1 .. 128)) OPTIONAL --- квартира, офис
+}
+
+RequestedPassportORI ::= SEQUENCE {
+ passport-serial [0] UTF8String (SIZE (1 .. 16)) OPTIONAL, --- серия паспорта
+ passport-number [1] UTF8String (SIZE (1 .. 16)) OPTIONAL  --- номер паспорта
+}
+
+END

@@ -1,0 +1,113 @@
+ReportsAbonentsORI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS AbonentsORIReport;
+
+IMPORTS TAGGED,
+   sorm-report-abonent-ori
+   FROM Classification
+
+   DateAndTime
+   FROM Sorm
+
+   TelcoID
+   FROM Tasks
+
+   UserID,
+   UserIdentifier
+   FROM IdentifiersORI;
+
+AbonentsORIReport ::= SEQUENCE {
+ id TAGGED.&id ({AbonentsORIReportVariants}),
+ data TAGGED.&Data ({AbonentsORIReportVariants}{@id})
+}
+
+AbonentsORIReportVariants TAGGED ::= {
+ reportAbonentORI
+}
+
+reportAbonentORI TAGGED ::= {
+ OID {sorm-report-abonent-ori}
+ DATA SEQUENCE OF AbonentsORIRecord
+}
+
+AbonentsORIRecord ::= SEQUENCE {
+ telco-id         TelcoID,                                          --- идентификатор ИС ОРИ, обслуживаемый ПТС ОРИ
+ user-identifier     UserIdentifier,                                --- идентификатор пользователя
+ datetime-registered    DateAndTime,                                --- дата и время регистрации
+ abonent-info        AbonentInfoORI,                                --- информация о пользователе
+ abonent-contacts [0]   AbonentContactsORI OPTIONAL,                --- контактные данные пользователя
+ im-identifiers [1]  SEQUENCE OF AbonentImIdentifierORI OPTIONAL,   --- идентификаторы пользователя в других средствах электронного взаимодействия
+ datetime-updated [2]   DateAndTime OPTIONAL,                       --- дата и время обновления информации
+ datetime-unregistered [3] DateAndTime OPTIONAL,                    --- дата и время прекращения регистрации
+ contract-date [4]   DateAndTime OPTIONAL,                          --- дата и время заключения договора
+ contract [5]      UTF8String (SIZE (1 .. 64)) OPTIONAL,            --- номер договора
+ additional [6]    SEQUENCE OF AdditionalInfo OPTIONAL              --- дополнительная информация о пользователе
+}
+
+--- информация о пользователе
+AbonentInfoORI ::= SEQUENCE {
+ nick-name [0]   UTF8String (SIZE (1 .. 1024)) OPTIONAL,            --- псевдоним пользователя
+ birth-date    GeneralizedTime OPTIONAL,                            --- дата рождения
+ address [1]   ReportedAddressORI OPTIONAL,                         --- адресные данные
+ name-info [2]  ReportedNameInfoORI OPTIONAL,                       --- ФИО
+ passport-info [3] ReportedPassportInfoORI OPTIONAL,                --- паспортные данные
+ langs [4]   SEQUENCE OF UTF8String (SIZE (1 .. 64)) OPTIONAL,      --- список языков, которыми владеет пользователь
+ relatives [5] SEQUENCE OF UserID OPTIONAL                          --- список родственников пользователя
+}
+
+--- адресные данные
+ReportedAddressORI ::= CHOICE {
+ struct-info [0] ReportedStructAddressORI,
+ unstruct-info [1] UTF8String (SIZE (1 .. 1024))
+}
+
+ReportedStructAddressORI ::= SEQUENCE {
+ country [0]  UTF8String (SIZE (1 .. 128)) OPTIONAL,  --- страна
+ region (1)  UTF8String (SIZE (1 .. 128)) OPTIONAL,   --- область
+ city [2]  UTF8String (SIZE (1 .. 128)) OPTIONAL,     --- город, поселок, деревня
+ street [3] UTF8String (SIZE (1 .. 128)) OPTIONAL,    --- улица
+ building [4] UTF8String (SIZE (1 .. 128)) OPTIONAL,  --- дом, строение
+ apartment [5] UTF8String (SIZE (1 .. 128)) OPTIONAL  --- квартира, офис
+}
+
+--- ФИО
+ReportedNameInfoORI ::= CHOICE {
+ struct-info [0]  ReportedStructNameInfoORI,
+ unstruct-info [1] UTF8String (SIZE (1 .. 1024))
+}
+
+ReportedStructNameInfoORI ::= SEQUENCE {
+ given-name [0] UTF8String (SIZE (1 .. 128)) OPTIONAL, --- имя
+ initial [1]  UTF8String (SIZE (1 .. 128)) OPTIONAL,   --- отчество
+ family-name [2] UTF8String (SIZE (1 .. 128)) OPTIONAL --- фамилия
+}
+
+--- паспортные данные
+ReportedPassportInfoORI ::= CHOICE {
+ struct-info [0]  ReportedStructPassroptInfoORI,
+ unstruct-info [1] UTF8String (SIZE (1 .. 1024))
+}
+
+ReportedStructPassroptInfoORI ::= SEQUENCE {
+ passport-serial [0] UTF8String (SIZE (1..16)) OPTIONAL,   --- серия паспорта
+ passport-number [1] UTF8String (SIZE (1..16)) OPTIONAL    --- номер паспорта
+}
+
+--- контактные данные пользователя
+AbonentContactsORI ::= SEQUENCE {
+ msisdn [0] SEQUENCE OF UTF8String (SIZE (1 .. 64)) OPTIONAL,   --- список номеров телефона пользователя
+ email [1] SEQUENCE OF UTF8String (SIZE (1 .. 256)) OPTIONAL     --- список адресов электронной почта пользователя
+}
+
+--- идентификаторы пользователя в других средствах электронного взаимодействия
+AbonentImIdentifierORI ::= SEQUENCE {
+ service-name UTF8String (SIZE (1 .. 128)),    --- наименование сервиса
+ service-id  UTF8String (SIZE (1 .. 256))      --- идентификатор пользователя в сервисе
+}
+--- дополнительная информация о пользователе
+AdditionalInfo ::= SEQUENCE {
+ title  UTF8String (SIZE (1 .. 128)),        --- наименование о дополнительных сведениях
+ content UTF8String (SIZE (1 .. 4096))       --- содержание дополнительных сведений
+}
+END

@@ -1,0 +1,60 @@
+Reports DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS reportMessage,
+   Acknowledgement;
+
+IMPORTS TAGGED,
+   sorm-message-report
+   FROM Classification
+
+   MessageID
+   FROM Sorm
+
+   TaskID
+   FROM Tasks
+
+   DictionaryReport
+   FROM Dictionaries
+
+   PresenseReport
+   FROM ReportsPresense
+
+   AbonentsORIReport
+   FROM ReportsAbonentsORI
+
+   ConnectionsORIReport
+   FROM ReportsConnectionsORI;
+
+reportMessage TAGGED ::= {
+ OID {sorm-message-report}
+ DATA CHOICE {
+  report [0] Report,        --- тип сообщения "отчет"
+  ack [1]  Acknowledgement  --- тип сообщения "подтверждение"
+ }
+}
+
+--- Блок данных сообщения типа "отчет"
+Report ::= SEQUENCE {
+ request-id MessageID,          --- идентификатор запроса, запросивший отчет
+ task-id TaskID,                --- идентификатор задачи, сгенерировавшей данный отчет
+ total-blocks-number INTEGER,   --- общее количество блоков в отчете
+ block-number INTEGER,          --- порядковый номер текущего блока
+ report-block ReportDataBlock   --- блок данных отчета
+}
+
+ReportDataBlock ::= CHOICE {
+ dictionary [0]   DictionaryReport,         --- отчеты задач пополнения справочников (нормативно-справочная информация)
+ presense [6]     PresenseReport,           --- отчеты задач по запросу наличия в ИС СОРМ информации
+ abonents-ori [8]  AbonentsORIReport,       --- отчеты задач по принадлежности абонентов организаторов распространения информации
+ connections-ori [9] ConnectionsORIReport   --- отчеты задач по соединениям абонентов организаторов распространения информации
+}
+
+--- Подтверждение приема блока, передается с номером сообщения соответствующему номеру сообщения блока отчета
+Acknowledgement ::= SEQUENCE {
+ successful BOOLEAN,                                       --- признак успешного приема блока
+ broken-record INTEGER OPTIONAL,                           --- номер записи в отчете, обработанной на ПУ с ошибкой
+ error-description UTF8String (SIZE (1 .. 1024)) OPTIONAL  --- описание ошибки приема блока в произвольной форме
+}
+
+END

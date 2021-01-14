@@ -1,0 +1,101 @@
+Classification DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS TAGGED,
+
+    sorm-message-session,
+    sorm-message-trap,
+    sorm-message-task,
+    sorm-message-report,
+    sorm-message-management,
+    sorm-message-unformatted,
+    sorm-message-report-uni,
+
+    sorm-request-connection-ori-data-standart,
+    sorm-request-connection-ori-data-extended,
+    sorm-request-connection-ori-link,
+    sorm-request-connection-ori-aaa,
+    sorm-request-connection-ori-streams-content,
+    sorm-request-connection-ori-cert,
+    sorm-request-connection-ori-keys,
+
+    sorm-report-connection-ori-data,
+    sorm-report-connection-ori-link,
+    sorm-report-connection-ori-aaa,
+    sorm-report-connection-ori-streams-content,
+    sorm-report-connection-ori-cert,
+    sorm-report-connection-ori-keys,
+    sorm-request-abonent-ori,
+    sorm-report-abonent-ori,
+
+    sorm-request-dictionaries,
+    sorm-report-dictionary-telcos,
+    sorm-report-dictionary-ori-services,
+    sorm-report-dictionary-ori-events,
+    sorm-report-dictionary-ori-resources,
+    sorm-report-dictionary-ori-user-types,
+    sorm-report-dictionary-ori-payment-services,
+
+    sorm-request-presense,
+    sorm-report-presense-dictionaries,
+    sorm-report-presense-abonents-ori,
+    sorm-report-presense-connections-ori;
+
+TAGGED ::= CLASS {
+  &id ObjectDescriptor UNIQUE,
+  &Data
+}
+WITH SYNTAX {
+  OID &id
+  DATA &Data
+}
+
+--- Классификация
+OID ::= ObjectDescriptor
+
+--- Подструктура сообщений
+sorm-message-session OID ::= "280"
+sorm-message-trap OID ::= "281"
+sorm-message-task OID ::= "282"
+sorm-message-report OID ::= "283"
+sorm-message-management OID::= "284"
+sorm-message-unformatted OID ::= "285"
+sorm-message-report-uni OID::= "289"
+
+--- Параметры соединений
+sorm-request-connection-ori-data-standart OID::= "265"
+sorm-request-connection-ori-data-extended OID::= "266"
+sorm-request-connection-ori-link OID::= "267"
+sorm-request-connection-ori-aaa OID::= "268"
+sorm-request-connection-ori-streams-content OID::= "269"
+sorm-request-connection-ori-cert OID::= "270"
+sorm-request-connection-ori-keys OID::= "271"
+
+sorm-report-connection-ori-data OID::= "10"
+sorm-report-connection-ori-link OID::= "11"
+sorm-report-connection-ori-aaa OID::= "12"
+sorm-report-connection-ori-streams-content OID::= "13"
+sorm-report-connection-ori-cert OID::= "14"
+sorm-report-connection-ori-keys OID::= "15"
+
+--- Абоненты
+sorm-request-abonent-ori OID ::= "245"
+sorm-report-abonent-ori OID ::= "70"
+
+--- Справочники
+sorm-request-dictionaries OID ::= "240"
+sorm-report-dictionary-telcos OID::= "112"
+sorm-report-dictionary-ori-services OID ::= "117"
+sorm-report-dictionary-ori-events OID ::= "118"
+sorm-report-dictionary-ori-resources OID ::= "119"
+sorm-report-dictionary-ori-user-types OID ::= "130"
+sorm-report-dictionary-ori-payment-services OID ::= "131"
+
+--- Запрос о наличии данных
+sorm-request-presense OID ::= "260"
+
+sorm-report-presense-dictionaries OID::= "123"
+sorm-report-presense-abonents-ori OID ::= "125"
+sorm-report-presense-connections-ori OID ::= "126"
+
+END

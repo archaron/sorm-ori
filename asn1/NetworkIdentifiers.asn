@@ -1,0 +1,35 @@
+NetworkIdentifiers DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS NetworkPeerInfo,
+   ProjectionType;
+
+--- информация об участнике соединения передачи данных
+NetworkPeerInfo ::= SEQUENCE {
+ ip-address IPAddress,      --- IP-адрес
+ ip-port  IPPort OPTIONAL   --- IP-порт
+}
+
+--- IP-адрес
+IPAddress ::= CHOICE {
+ ipv4 [0] IPV4Address,   --- IPv4-адрес
+ ipv6 [1] IPV6Address    --- IPv6-адрес
+}
+
+--- IPv4-адрес
+IPV4Address ::= OCTET STRING (SIZE (4))
+
+--- IPv6-адрес
+IPV6Address ::= OCTET STRING (SIZE (16))
+
+--- IP/UDP/TCP-порт
+IPPort ::= OCTET STRING (SIZE (2)) --- порт
+
+--- тип проекции координат
+ProjectionType ::= ENUMERATED {
+ wgs84 (0),
+ utm (1),
+ sgs85 (2)
+}
+
+END

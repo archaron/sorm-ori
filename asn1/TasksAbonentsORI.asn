@@ -1,0 +1,24 @@
+TasksAbonentsORI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS AbonentsORITask;
+
+IMPORTS LogicalOperation
+    FROM Tasks
+
+    RequestedAbonentORI
+    FROM RequestedAbonentsORI;
+
+AbonentsORITask ::= CHOICE {
+ validate-abonents [0] ValidateAbonentsORITask
+}
+
+ValidateAbonentsORITask ::= RequestedAbonentORIIdentifiers
+RequestedAbonentORIIdentifiers ::= SEQUENCE OF RequestedAbonentORIIdentifier
+
+RequestedAbonentORIIdentifier ::= CHOICE {
+ separator [0] LogicalOperation,
+ find-mask [1] RequestedAbonentORI
+}
+
+END

@@ -1,0 +1,32 @@
+TasksConnectionsORI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS ConnectionsORITask;
+
+IMPORTS LogicalOperation
+    FROM Tasks
+
+    RequestedConnectionORI
+    FROM RequestedConnectionsORI;
+
+ConnectionsORITask ::= CHOICE {
+ validate-standart [0]        ValidateStandartTask,         --- используется для запросов стандартного класса сложности
+ validate-extended [1]        ValidateExtendedTask,         --- используется для расширенных запросов
+ validate-streams-content [2] ValidateStreamsContentTask,   --- используется для получения содержимого изображений, звуков, голосовой информации, видео- и иных электронных сообщений
+ valide-keys [3]              ValidateTaskF1
+}
+
+ValidateStandartTask ::= RequestedConnectionIdentifiersORI
+ValidateExtendedTask ::= RequestedConnectionIdentifiersORI
+ValidateStreamsContentTask ::= RequestedConnectionORI
+ValidateTaskF1 ::= RequestedConnectionIdentifiersORI
+
+RequestedConnectionIdentifiersORI ::= SEQUENCE OF
+RequestedConnectionParameterORI
+
+RequestedConnectionParameterORI ::= CHOICE {
+ separator [0] LogicalOperation,
+ find-mask [1] RequestedConnectionORI
+}
+
+END

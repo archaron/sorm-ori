@@ -1,0 +1,28 @@
+TasksPresense DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS PresenseTask;
+
+IMPORTS TAGGED,
+    sorm-request-presense
+    FROM Classification;
+
+PresenseTask ::= SEQUENCE {
+ id TAGGED.&id ({PresenseListVariants}),
+ data TAGGED.&Data ({PresenseListVariants}{@id})
+}
+
+PresenseListVariants TAGGED ::= {presenseInfo}
+
+presenseInfo TAGGED ::= {
+ OID {sorm-request-presense}
+ DATA RequestPresenseData
+}
+
+RequestPresenseData ::= ENUMERATED {
+ dictionaries (3),   --- запрос наличия справочников
+ abonents-ori (5),   --- запрос наличия информации по информации по пользователямОРИ и их идентификаторам
+ connections-ori (6) --- запрос наличия информации по соединениям пользователя ОРИ
+}
+
+END

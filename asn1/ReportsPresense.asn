@@ -1,0 +1,77 @@
+ReportsPresense DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS PresenseReport;
+
+IMPORTS TAGGED,
+   sorm-report-presense-dictionaries,
+   sorm-report-presense-abonents-ori,
+   sorm-report-presense-connections-ori
+   FROM Classification
+
+   FindRange
+   FROM Sorm
+
+   TelcoID
+   FROM Tasks;
+
+--- отчет по запросу наличия информации
+PresenseReport ::= SEQUENCE {
+ id TAGGED.&id ({ReportedPresensesVariants}),
+ data TAGGED.&Data ({ReportedPresensesVariants}{@id})
+}
+
+ReportedPresensesVariants TAGGED ::= {
+   dictionariesPresence    --- отчет по наличию информации по справочникам
+ | abonentsORIPresence     --- отчет по наличию информации по информации по пользователям ОРИ и их идентификаторам
+ | connectionsORIPresence  --- отчет по наличию информации по соединениям пользователя ОРИ
+}
+
+--- отчет по наличию информации по справочникам.
+--- Если какой-либо из справочников не публикуется ИС СОРМ, запись о нем отсутствует
+dictionariesPresence TAGGED ::= {
+ OID {sorm-report-presense-dictionaries}
+ DATA SEQUENCE OF DictionaryInfo
+}
+--- запись отчета о наличии справочной информации
+DictionaryInfo ::= SEQUENCE {
+ telco-id  TelcoID,                     --- идентификатор ИС ОРИ
+ dict     ObjectDescriptor,             --- тип справочника, по которому есть информация
+ count     INTEGER (1 .. 4294967295),   --- количество записей в справочнике
+ change-dates FindRange                 --- минимальное и максимальное дата/время изменения записей в справочнике
+}
+
+--- отчет по наличию информации по информации по пользователям ОРИ и их идентификаторам
+abonentsORIPresence TAGGED ::= {
+ OID {sorm-report-presense-abonents-ori}
+ DATA SEQUENCE OF AbonentsORIPresenseRecord
+}
+
+AbonentsORIPresenseRecord ::= SEQUENCE {
+ range  FindRange,                          --- интервал времени, на который имеются данные в ИС ОРИ
+ count  INTEGER,                            --- количество записей
+ service-id INTEGER (0 .. 65535) OPTIONAL   --- идентификатор сервиса
+}
+
+--- отчет по наличию информации по соединениям пользователя ОРИ
+connectionsORIPresence TAGGED ::= {
+ OID {sorm-report-presense-connections-ori}
+ DATA SEQUENCE OF ConnectionsORIPresenseRecord
+}
+
+ConnectionsORIPresenseRecord ::= SEQUENCE {
+ range    FindRange,                        --- интервал времени, на который имеются данные в ИС ОРИ
+ count    INTEGER,                          --- количество записей
+ data-type  ConnectionsORIPresenseType,     --- вид событий в ИС ОРИ, информация по которым есть в ИС СОРМ
+ service-id INTEGER (0 .. 65535) OPTIONAL   --- идентификатор сервиса
+}
+
+ConnectionsORIPresenseType ::= ENUMERATED {
+ data (0), --- записи об информационном взаимодействии пользователей в ИС ОРИ
+ link (1), --- записи о добавлении/исключении связанных пользователей
+ aaa (2),  --- записи о регистрации, прекращения регистрации, авторизации, выхода из информационного сервиса
+ certs (3),
+ keys (4)
+}
+
+END

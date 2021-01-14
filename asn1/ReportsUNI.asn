@@ -1,0 +1,66 @@
+ReportsUNI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS reportMessageUNI;
+
+IMPORTS TAGGED,
+   sorm-message-report-uni
+   FROM Classification
+
+   ObjectUNI
+   FROM Tasks
+
+   Acknowledgement
+   FROM Reports
+
+   reportConnectionsDataORI,
+   reportConnectionsLinkORI,
+   reportConnectionsAAAORI,
+   reportConnectionsStreamsContentORI
+   FROM ReportsConnectionsORI;
+ reportMessageUNI TAGGED ::= {
+  OID {sorm-message-report-uni}
+  DATA CHOICE {
+   report [0] ReportUNI,   --- тип сообщения "отчет"
+   ack [1] Acknowledgement --- тип сообщения "подтверждение"
+ }
+}
+
+--- Блок данных сообщения типа "отчет"
+ReportUNI ::= SEQUENCE {
+ object-unis SEQUENCE OF ObjectUNI, --- идентификаторы объектов наблюдения, по которым отобраны данные
+ report-block ReportBlockUNI        --- блок данных отчета
+}
+
+ReportBlockUNI ::= CHOICE {
+ statistics [0] StatisticsReportedConnections,
+ content [1]     ContentReportBlockUNI
+}
+
+StatisticsReportedConnections ::= SEQUENCE {
+ id TAGGED.&id ({StatisticsReportedConnectionsVariants}),
+ data TAGGED.&Data ({StatisticsReportedConnectionsVariants}{@id})
+}
+
+StatisticsReportedConnectionsVariants TAGGED ::= {
+   reportConnectionsDataORI        --- события информационного взаимодействия пользователей в ИС ОРИ
+ | reportConnectionsLinkORI        --- события добавления/исключения связанных пользователей
+ | reportConnectionsAAAORI         --- события регистрации, прекращения регистрации, авторизации, выхода из информационного сервиса
+}
+
+ContentReportBlockUNI ::= SEQUENCE {
+ report-block ContentReportedConnections, --- блок данных отчета
+ stream-id   ORIStreamID,                 --- идентификатор содержимого
+ last-block BOOLEAN                       --- признак последнего блока
+}
+
+ContentReportedConnections ::= SEQUENCE {
+ id TAGGED.&id ({ContentReportedConnectionsVariants}),
+ data TAGGED.&Data ({ContentReportedConnectionsVariants}{@id})
+}
+
+ContentReportedConnectionsVariants TAGGED ::= {
+ reportConnectionsStreamsContentORI  --- содержимое изображений, звуков, голосовой информации, видео- и иных электронных сообщений
+}
+
+END

@@ -1,0 +1,209 @@
+ReportsConnectionsORI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS ConnectionsORIReport,
+   reportConnectionsDataORI,
+   reportConnectionsLinkORI,
+   reportConnectionsAAAORI,
+   reportConnectionsStreamsContentORI,
+   reportConnectionsCertORI,
+   reportConnectionsKeysORI;
+
+IMPORTS TAGGED,
+   sorm-report-connection-ori-data,
+   sorm-report-connection-ori-link,
+   sorm-report-connection-ori-aaa,
+   sorm-report-connection-ori-streams-content,
+   sorm-report-connection-ori-cert,
+   sorm-report-connection-ori-keys
+   FROM Classification
+
+   DateAndTime
+   FROM Sorm
+
+   TelcoID
+   FROM Tasks
+
+   UserID,
+   UserIdentifier,
+
+   UserTechnicalIdentifier,
+   ResourceIdentifier,
+   ORIStreamID
+   FROM IdentifiersORI
+
+   NetworkPeerInfo
+   FROM NetworkIdentifiers
+
+   LocationInfo
+   FROM Locations;
+ConnectionsORIReport ::= SEQUENCE {
+ id TAGGED.&id ({ReportedConnectionsORIVariants}),
+ data TAGGED.&Data ({ReportedConnectionsORIVariants}{@id})
+}
+
+ReportedConnectionsORIVariants TAGGED ::= {
+   reportConnectionsDataORI             --- события информационного взаимодействия пользователей в ИС ОРИ
+ | reportConnectionsLinkORI             --- события добавления/исключения связанных пользователей 
+ | reportConnectionsAAAORI              --- события регистрации, прекращения регистрации, авторизации, выхода из информационного сервиса
+ | reportConnectionsStreamsContentORI   --- содержимое изображений, звуков, голосовой информации, видео- и иных электронных сообщений
+ | reportConnectionsCertORI
+ | reportConnectionsKeysORI
+}
+
+--- события информационного взаимодействия пользователей в ИС ОРИ
+reportConnectionsDataORI TAGGED ::= {
+ OID {sorm-report-connection-ori-data}
+ DATA SEQUENCE OF ConnectionDataORIRecord
+}
+
+ConnectionDataORIRecord ::= SEQUENCE {
+ telco-id          TelcoID,                                         --- идентификатор ИС ОРИ, обслуживаемый ПТС ОРИ
+ arrive-datetime   DateAndTime,                                     --- дата и время поступления информации
+ datetime          DateAndTime,                                     --- дата и время
+ service-id        INTEGER (0 .. 65535),                            --- идентификатор сервиса (расшифровывается по справочнику)
+ abonent-identifier  UserIdentifier,                                --- идентификатор пользователя
+ abonent-technical-identifier SEQUENCE OF UserTechnicalIdentifier,  --- технические данные, идентифицирующие пользователя
+ event-id          INTEGER (0 .. 65535),                            --- тип события (расшифровывается по справочнику)
+ contacts-identifier   SEQUENCE OF UserIdentifier,                  --- идентификаторы контактов
+ abonent-location [0]    LocationInfo OPTIONAL,                     --- местоположение пользователя
+ resource-identifier [1] ResourceIdentifier OPTIONAL,               --- ресурс
+ resource-info [2]  ResourceMetadataInfoORI OPTIONAL,               --- техническая информация о ресурсе
+ owner-identifier [3]  UserIdentifier OPTIONAL,                     --- идентификатор владельца ресурса
+ message-text [4]     UTF8String OPTIONAL,                          --- текст сообщения без разметки и иной служебной коммуникационной  информации
+ payment-id [5]      PaymentInfoORI OPTIONAL,                       --- техническая информация о платеже
+ stream-id [6]      ORIStreamID OPTIONAL                            --- последовательный идентификатор файла
+}
+
+ResourceMetadataInfoORI ::= CHOICE {
+ files-metadata [0] SEQUENCE OF FileMetadata,
+ stream-metadata [1] StreamMetadata
+}
+
+--- техническая информация о файловых данных
+FileMetadata ::= SEQUENCE {
+ filename UTF8String (SIZE (1 .. 256)),
+ filesize INTEGER
+}
+
+--- техническая информация о потоковых данных
+StreamMetadata ::= SEQUENCE {
+ timestamp [0]     GeneralizedTime OPTIONAL,
+ duration [1]    INTEGER OPTIONAL,
+ start-offset [2] INTEGER OPTIONAL,
+ stop-offset [3]  INTEGER OPTIONAL
+}
+
+PaymentInfoORI ::= SEQUENCE {
+ payment-identifier UTF8String (SIZE (1 .. 128)),         --- идентификатор транзакции, счета, кошелька и т.д.
+ payment-service-id INTEGER (0 .. 65535),                 --- идентификатор платежного сервиса (расшифровывается по справочнику)
+ payment-info      UTF8String (SIZE (1 .. 4096)) OPTIONAL --- дополнительная информация
+}
+
+--- события добавления/исключения связанных пользователей
+reportConnectionsLinkORI TAGGED ::= {
+ OID {sorm-report-connection-ori-link}
+ DATA SEQUENCE OF ConnectionLinkORIRecord
+}
+
+ConnectionLinkORIRecord ::= SEQUENCE {
+ telco-id  TelcolD,                 --- идентификатор ИС ОРИ, обслуживаемый ПТС ОРИ
+ arrive-datetime DateAndTime,       --- дата и время поступления информации
+ datetime      DateAndTime,         --- дата и время
+ service-id   INTEGER (0 .. 65535), --- идентификатор сервиса (расшифровывается по справочнику)
+ abonent-id    UserIdentifier,      --- идентификатор пользователя, устанавливающего связь
+ event-id     INTEGER (0 .. 65535), --- тип события (расшифровывается по справочнику)
+ linked-identifier LinkedIdentifier --- идентификатор объекта, с которым установлена связь
+}
+
+LinkedIdentifier ::= CHOICE {
+ connected-user-identifier [0] UserIdentifier,          --- идентификатор пользователя
+ connected-resource-identifier [1] ResourceIdentifier   --- ресурс
+}
+
+--- события регистрации, прекращения регистрации, авторизации, выхода из информационного сервиса
+reportConnectionsAAAORI TAGGED ::= {
+ OID {sorm-report-connection-ori-aaa}
+ DATA SEQUENCE OF ConnectionAAAORIRecord
+}
+
+ConnectionAAAORIRecord ::= SEQUENCE {
+ telco-id           TelcoID,                                        --- идентификатор ИС ОРИ, обслуживаемый ПТС ОРИ
+ arrive-datetime    DateAndTime,                                    --- дата и время поступления информации
+ datetime           DateAndTime,                                    --- дата и время
+ service-id         INTEGER (0 .. 65535),                           --- идентификатор сервиса (расшифровывается по справочнику)
+ abonent-identifier   UserIdentifier,                               --- идентификатор пользователя
+ abonent-technical-identifier SEQUENCE OF UserTechnicalIdentifier,  --- технические данные, идентифицирующие пользователя
+ event-id         INTEGER (0 .. 65535),                             --- тип события (расшифровывается по справочнику)
+ abonent-location [0] LocationInfo OPTIONAL                         --- местоположение пользователя
+}
+
+--- содержимое изображений, звуков, голосовой информации, видео- и иных электронных сообщений
+reportConnectionsStreamsContentORI TAGGED ::= {
+ OID {sorm-report-connection-ori-streams-content}
+ DATA ConnectionsStreamsContentORIRecords
+}
+
+ConnectionsStreamsContentORIRecords ::= CHOICE {
+ flow-data [0] SEQUENCE OF ConnectionsStreamsContentORIRecordFlow,
+ file-data [1] SEQUENCE OF ConnectionsStreamsContentORIRecordFile
+}
+
+ConnectionsStreamsContentORIRecordFlow ::= SEQUENCE {
+ data  OCTET STRING (SIZE (1 .. 1048576)),      --- содержимое блока
+ codec  UTF8String (SIZE (1 .. 4096)) OPTIONAL, --- описание способа кодирования в формате SDP в соответствии RFC 2327
+ direction StreamsContentORIDirection OPTIONAL  --- направление передачи
+}
+
+StreamsContentORIDirection ::= ENUMERATED {
+ client-server (0),
+ server-client (1)
+}
+
+ConnectionsStreamsContentORIRecordFile ::= OCTET STRING (SIZE (1.. 1048576))
+
+reportConnectionsCertORI TAGGED ::= {
+ OID {sorm-report-connection-ori-cert}
+ DATA SEQUENCE OF ConnectionCertORIRecord
+}
+
+ConnectionCertORIRecord ::= SEQUENCE {
+ telco-id    TelcoID,
+ arrive-datetime DateAndTime,
+ datetime-from   DateAndTime,
+ datetime-to    DateAndTime OPTIONAL,
+ client      NetworkPeerInfo,
+ server       NetworkPeerInfo,
+ client-random   OCTET STRING (SIZE (1.. 512)),
+ pre-master-key   OCTET STRING (SIZE (1.. 512)),
+ server-random [0] OCTET STRING (SIZE (1.. 512)) OPTIONAL
+}
+
+reportConnectionsKeysORI TAGGED ::= {
+ OID {sorm-report-connection-ori-keys}
+ DATA SEQUENCE OF ConnectionKeysORIRecord
+}
+
+ConnectionKeysORIRecord ::= SEQUENCE {
+ telco-id          TelcoID,
+ arrive-datetime   DateAndTime,
+ datetime-from     DateAndTime,
+ datetime-to [0]   DateAndTime OPTIONAL,
+ as-server [1]     INTEGER OPTIONAL,
+ as-client [2]     INTEGER OPTIONAL,
+ client            NetworkPeerInfo,
+ server            NetworkPeerInfo,
+ client-random     OCTET STRING (SIZE (1 .. 512)),
+ pre-master-key    OCTET STRING (SIZE (1 .. 512)),
+ server-random [0] OCTET STRING (SIZE (1 .. 512)) OPTIONAL,
+ sni [1]           UTF8String (SIZE (1 .. 128)) OPTIONAL,
+ user-id [2]       UTF8String (SIZE (1 .. 64)) OPTIONAL,
+ user-login [3]    UTF8String (SIZE (1 .. 64)) OPTIONAL,
+ key-exchange [4]  UTF8String (SIZE (1 .. 16)) OPTIONAL,
+ chipher-suite [5] INTEGER OPTIONAL,
+ client-region [6] UTF8String (SIZE (1 .. 10)) OPTIONAL,
+ server-region [7] UTF8String (SIZE (1 .. 10)) OPTIONAL,
+ service-name [8]  UTF8String (SIZE (1 .. 16)) OPTIONAL
+}
+
+END

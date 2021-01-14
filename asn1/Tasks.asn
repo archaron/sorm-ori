@@ -1,0 +1,151 @@
+Tasks DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS taskMessage,
+   TaskID,
+   TelcoID,
+   TelcoList,
+   LogicalOperation,
+   CreateTaskResponse;
+
+IMPORTS TAGGED,
+   sorm-message-task
+   FROM Classification
+
+   FindRange,
+   MessageID
+   FROM Sorm
+
+   DictionaryTask
+   FROM Dictionaries
+
+   PresenseTask
+   FROM TasksPresense
+
+   AbonentsORITask
+   FROM TasksAbonentsORI
+
+   ConnectionsORITask
+   FROM TasksConnectionsORI;
+
+   UNIControlTaskRequest,
+   UNIControlTaskResponse
+   FROM TasksUNI;
+
+taskMessage TAGGED ::= {
+ OID {sorm-message-task}
+ DATA CHOICE {
+  data-ready-request [0]        DataReadyRequest,            --- запрос готовности данных
+  data-ready-response [1]       DataReadyResponse,           --- ответ на запрос готовности данных
+  data-load-request [2]         DataLoadRequest,             --- запрос загрузки данных
+  data-load-response [3]        DataLoadResponse,            --- ответ на запрос загрузки данных
+  data-drop-request [4]         DataDropRequest,             --- запрос удаления данных
+  data-drop-response [5]        DataDropResponse,            --- ответ на запрос удаления данных
+  data-interrupt-request [6]    DataInterruptRequest,        --- запрос прерывания загрузки данных
+  data-interrupt-response [7]   DataInterruptResponse,       --- ответ на запрос прерывания загрузки данных
+  create-task-request [8]       CreateTaskRequest,           --- запрос на создание задачи по обработке информации
+  create-task-response [9]      CreateTaskResponse,          --- ответ на запрос создания задачи
+  uni-task-request [12]         UNIControlTaskRequest,       --- запрос на постановку/снятие объекта наблюдения на контроль
+  uni-task-response [13]         UNIControlTaskResponse      --- ответ на запрос постановки/снятия объекта наблюдения с контроля
+ }
+}
+
+--- запрос готовности данных
+DataReadyRequest ::= NULL
+
+--- ответ на запрос готовности данных
+DataReadyResponse ::= SEQUENCE OF DataReadyTaskRecord
+
+DataReadyTaskRecord ::= SEQUENCE {
+ task-id TaskID,       --- идентификатор задачи
+ result  TaskResult    --- результат выполнения задачи
+}
+
+TaskResult ::= SEQUENCE {
+ result TaskStatus,
+ report-records-number [0] INTEGER (0 .. 999999999999) OPTIONAL,  --- для выполненной задачи - количество записей в отчете
+ report-limit-exeeded [1] BOOLEAN OPTIONAL,                       --- количество записей превысило лимит, заданный при создании задачи
+ error-description   [2] UTF8String (SIZE (1 .. 256)) OPTIONAL    --- краткое описание произошедшей ошибки, если обнаружена
+}
+
+TaskStatus ::= ENUMERATED {
+ data-not-ready (0),  --- данные не готовы, задача еще выполняется
+ data-ready (1),      --- данные есть, задача выполнена
+ data-not-found (2),  --- данных нет, задача выполнена
+ error (3)            --- в процессе выполнения задачи произошла ошибка
+}
+
+--- запрос загрузки данных
+DataLoadRequest ::= TaskID
+
+--- ответ на запрос загрузки данных
+DataLoadResponse ::= SEQUENCE {
+ task-id    TaskID,                                        --- идентификатор задачи, сгенерировавшей данный отчет
+ data-exists  BOOLEAN,                                     --- признак существования результатов исполнения задачи (есть данные или нет)
+ data-blocks-number INTEGER (0 .. 999999999999) OPTIONAL,  --- количество блоков в отчете
+ error-description  UTF8String (SIZE (1 .. 256)) OPTIONAL  --- краткое описание ошибки, если обнаружена
+}
+
+--- запрос удаления данных
+DataDropRequest ::= TaskID
+
+--- ответ на запрос удаления данных
+DataDropResponse ::= SEQUENCE {
+ task-id           TaskID,                                --- идентификатор задачи, данные которой будут удалены
+ successful        BOOLEAN,                               --- признак успешного выполнения запроса
+ error-description UTF8String (SIZE (1 .. 256)) OPTIONAL  --- краткое описание ошибки, если обнаружена
+}
+
+--- запрос прерывания загрузки данных
+DataInterruptRequest ::=  TaskID
+
+--- ответ на запрос прерывания загрузки данных
+DataInterruptResponse ::= SEQUENCE {
+ request-id    MessageID,                                    --- идентификатор прерванного запроса загрузки данных
+ successful    BOOLEAN,                                      --- признак успешного выполнения запроса
+ data-blocks-available INTEGER (0 .. 999999999999) OPTIONAL, --- количество оставшихся непереданными блоков
+ error-description     UTF8String (SIZE (1 .. 256)) OPTIONAL --- краткое описание ошибки, если обнаружена
+}
+
+--- запрос на создание задачи по обработке информации
+CreateTaskRequest ::= SEQUENCE {
+ telcos [0]       TelcoList OPTIONAL,                   --- список ИС ОРИ (других обслуживаемых ОРИ)
+ range [1]        FindRange OPTIONAL,                   --- временной диапазон поиска
+ report-limit [2] INTEGER (1 .. 10000000) OPTIONAL,     --- ограничение на максимальное количество возвращаемых записей
+ task [3] CHOICE {
+    dictionary [0]      DictionaryTask,        --- задачи пополнения справочников (нормативно-справочная информация)
+    presense [6]        PresenseTask,          --- задачи предоставления сведений о наличии данных
+    abonents-ori [7]    AbonentsORITask,       --- задачи поисков по принадлежности абонентов организаторов распространения информации
+    connections-ori [8] ConnectionsORITask     --- задачи поисков по соединениям абонентов организаторов распространения информации
+ },
+ find-by-arrive-time BOOLEAN OPTIONAL                    --- режим поиска информации (true - по дате и времени поступления; false - по дате и времени события; по умолчанию - false)
+}
+
+--- ответ на запрос создания задачи
+CreateTaskResponse ::= SEQUENCE {
+ task-id   TaskID OPTIONAL,                               --- идентификатор задачи
+ successful BOOLEAN,                                      --- признак успешного выполнения запроса
+ error-description UTF8String (SIZE (1 .. 256)) OPTIONAL  --- краткое описание ошибки, если обнаружена
+}
+
+--- идентификатор задачи
+TaskID ::= INTEGER (0 .. 4294967295)
+
+--- идентификатор ОРИ или коммуникационного интернет-сервиса ИС ОРИ
+TelcoID ::= INTEGER (0 .. 65535)
+
+--- список ИС ОРИ (других обслуживаемых ОРИ)
+TelcoList ::= SEQUENCE OF TelcoID
+
+--- идентификатор объекта наблюдения
+ObjectUNI ::= INTEGER (0 .. 4294967295)
+
+LogicalOperation ::= ENUMERATED {
+  operation-open-bracket (0),  --- открывающая скобка - "("
+  operation-close-bracket (1), --- закрывающая скобка - ")"
+  operation-or (2),            --- логическое "или"
+  operation-and (3),           --- логическое "и"
+  operation-not (4)            --- логическое "не"
+}
+
+END

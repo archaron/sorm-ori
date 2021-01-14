@@ -1,0 +1,129 @@
+RequestedConnectionsORI DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS RequestedConnectionORI;
+
+IMPORTS TAGGED,
+   sorm-request-connection-ori-data-standart,
+   sorm-request-connection-ori-data-extended,
+   sorm-request-connection-ori-link,
+   sorm-request-connection-ori-aaa,
+   sorm-request-connection-ori-streams-content,
+   sorm-request-connection-ori-cert,
+   sorm-request-connection-ori-keys
+   FROM Classification
+
+   UserID,
+   UserTechnicalIdentifier,
+   ResourceName,
+   ORIStreamID
+   FROM IdentifiersORI
+
+   NetworkPeerInfo
+   FROM NetworkIdentifiers
+
+   LocationInfo
+   FROM Locations;
+
+RequestedConnectionORI ::= SEQUENCE {
+ id TAGGED.&id ({RequestedConnectionORIVariants}),
+ data TAGGED.&Data ({RequestedConnectionORIVariants}{@id})
+}
+
+RequestedConnectionORIVariants TAGGED ::= {
+   requestedORIDataStandart     --- события информационного взаимодействия пользователей в ИС ОРИ (базовый набор критериев)
+ | requestedORIDataExtended     --- события информационного взаимодействия пользователей в ИС ОРИ (расширенный набор критериев)
+ | requestedORILink             --- события добавления/исключения связанных пользователей
+ | requestedORIAAA              --- события регистрации, прекращения регистрации, авторизации, выхода из информационного сервиса
+ | requestedORIStreamsContent   --- содержимое изображений, звуков, голосовой информации, видео- и иных электронных сообщений
+ | requestedORICert
+ | requestedORIKeys
+}
+
+--- события информационного взаимодействия пользователей в ИС ОРИ (базовый набор критериев)
+requestedORIDataStandart TAGGED ::= {
+ OID {sorm-request-connection-ori-data-standart}
+ DATA CHOICE {
+  abonent-id [0]        UserID,                             --- идентификатор пользователя
+  abonent-technical-identifier [1] UserTechnicalIdentifier  --- технические данные, идентифицирующие пользователя
+ }
+}
+
+--- события информационного взаимодействия пользователей в ИС ОРИ (расширенный набор критериев)
+requestedORIDataExtended TAGGED ::= {
+ OID {sorm-request-connection-ori-data-extended}
+ DATA CHOICE {
+  service-id [0]       INTEGER (0 .. 65535),                --- идентификатор сервиса (расшифровывается по справочнику)
+  abonent-id [1]        UserID,                             --- идентификатор абонента
+  abonent-technical-identifier [2] UserTechnicalIdentifier, --- технические данные, идентифицирующие абонента
+  abonent-location [3]     LocationInfo,                    --- местоположение абонента
+  contact-id [4]        UserID,                             --- идентификатор контакта
+  resource-name [5]        ResourceName,                    --- наименование ресурса
+  event-id [6]         INTEGER (0 .. 65535),                --- тип события (расшифровывается по справочнику)
+  owner-id [7]           UserID,                            --- идентификатор владельца ресурса
+  message-text [8]         UTF8String,                      --- текст сообщения без разметки и иной служебной коммуникационной информации
+  payment-identifier [9]    UTF8String(SIZE (1 .. 128)),    --- идентификатор платежа
+  payment-info [10]        UTF8String (SIZE (1 .. 4096))    --- платежная информация
+ }
+}
+
+--- события добавления/исключения связанных пользователей
+requestedORILink TAGGED ::= {
+ OID {sorm-request-connection-ori-link}
+ DATA CHOICE {
+  user-id [0]         UserID,               --- идентификатор пользователя, установившего связь
+  connected-user-id [1]    UserID,          --- идентификатор пользователя, с которым установили связь
+  connected-resource-name [2] ResourceName  --- наименование ресурса, с которым установили связь
+ }
+}
+
+--- события регистрации, прекращения регистрации, авторизации, выхода из информационного сервиса
+requestedORIAAA TAGGED ::= {
+ OID {sorm-request-connection-ori-aaa}
+ DATA CHOICE {
+  service-id [0]      INTEGER (0 .. 65535),              --- идентификатор сервиса (расшифровывается по справочнику)
+  user-id [1]        UserID,                             --- идентификатор пользователя
+  user-technical-identifier [2] UserTechnicalIdentifier, --- технические данные, идентифицирующие пользователя
+  user-location [3]        LocationInfo,                 --- местоположение пользователя
+  event-id [4]           INTEGER (0 .. 65535)            --- тип события (расшифровывается по справочнику)
+ }
+}
+
+--- содержимое изображений, звуков, голосовой информации, видео- и иных электронных сообщений
+requestedORIStreamsContent TAGGED ::= {
+ OID {sorm-request-connection-ori-streams-content}
+ DATA ORIStreamsContentRequest
+}
+
+ORIStreamsContentRequest ::= SEQUENCE {
+ stream-id        ORIStreamID,      --- идентификатор запрашиваемых данных
+ duration [1]     INTEGER OPTIONAL, --- длительность потоковых данных
+ start-offset [2] INTEGER OPTIONAL, --- начальное смещение потоковых данных
+ stop-offset [3]  INTEGER OPTIONAL  --- конечное смещение потоковых данных
+}
+
+requestedORICert TAGGED ::= {
+ OID {sorm-request-connection-ori-cert}
+ DATA CHOICE {
+  client [0] NetworkPeerInfo,
+  server [1] NetworkPeerInfo
+ }
+}
+
+requestedORIKeys TAGGED ::= {
+ OID (sorm-request-connection-ori-keys)
+ DATA CHOICE {
+  as-server [0]     INTEGER,
+  as-client [1]     INTEGER,
+  client [2]        NetworkPeerInfo,
+  server [3]        NetworkPeerInfo,
+  sni [4]           UTF8String (SIZE (1 .. 128)),
+  user-id [5]       UTF8String (SIZE (1 .. 64)),
+  user-login [6]    UTF8String (SIZE (1 .. 64)),
+  client-region [7] UTF8String (SIZE (1 .. 10)),
+  server-region [8] UTF8String (SIZE (1 .. 10)),
+  service-name [9]  UTF8String (SIZE (1 .. 16))
+ }
+}
+
+END

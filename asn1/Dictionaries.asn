@@ -1,0 +1,145 @@
+Dictionaries DEFINITIONS IMPLICIT TAGS ::=
+BEGIN
+
+EXPORTS DictionaryTask,
+    DictionaryReport;
+
+IMPORTS DateAndTime
+    FROM Sorm
+
+    TAGGED,
+    sorm-request-dictionaries,
+    sorm-report-dictionary-telcos,
+    sorm-report-dictionary-ori-services,
+    sorm-report-dictionary-ori-events,
+    sorm-report-dictionary-ori-resources,
+    sorm-report-dictionary-ori-user-types,
+    sorm-report-dictionary-ori-payment-services
+    FROM Classification;
+
+--- Запрос
+DictionaryTask ::= SEQUENCE {
+  id TAGGED.&id ({DictionaryTaskVariants}),
+  data TAGGED.&Data ({DictionaryTaskVariants}{@id})
+}
+
+DictionaryTaskVariants TAGGED ::= {dictionaryTask}
+
+dictionaryTask TAGGED ::= {
+  OID {sorm-request-dictionaries}
+  DATA ObjectDescriptor     --- тип запрашиваемого справочника (идентификатор отчета)
+}
+
+--- DATA ObjectDescriptor принимает значение одно из:
+--- sorm-report-dictionary-telcos
+--- sorm-report-dictionary-ori-services
+--- sorm-report-dictionary-ori-events
+--- sorm-report-dictionary-ori-resources
+--- sorm-report-dictionary-ori-user-types
+--- sorm-report-dictionary-ori-payment-services
+
+--- Отчет
+DictionaryReport ::= SEQUENCE {
+  id TAGGED.&id ({DictionaryRecordsVariants}),           --- идентификтор записи справочника
+  data TAGGED.&Data ({DictionaryRecordsVariants}{@id})   --- данные записи справочника
+}
+
+DictionaryRecordsVariants TAGGED ::= {
+    telcosRecords          --- коммуникационные интернет-сервисы ИС ОРИ
+  | oriServices            --- виды информационных сервисов, предоставляемых ОРИ для пользователей
+  | oriEvents              --- виды событий, регистрируемых ИС ОРИ при взаимодействии ИС ОРИ с пользователем
+  | oriResources           --- типы информационных ресурсов, создаваемых пользователями в ИС ОРИ
+  | oriUserTypes           --- типы пользователей, обслуживаемых ИС ОРИ
+  | oriPaymentServices     --- виды платежных услуг (платежных сервисов), используемых ОРИ
+}
+
+--- коммуникационные интернет-сервисы ИС ОРИ
+telcosRecords TAGGED::= {
+  OID {sorm-report-dictionary-telcos}
+  DATA SEQUENCE OF TelcosRecord
+}
+
+TelcosRecord::= SEQUENCE {
+  telco-id TelcoID,                          --- идентификатор ИС ОРИ
+  begin-time DateAndTime,                    --- время начала действия
+  end-time DateAndTime OPTIONAL,             --- время конца действия
+  description UTF8String (SIZE (1 .. 256)),  --- описание (наименование) коммуникационного интернет-сервиса ИС ОРИ
+  mcc [0] NumericString (SIZE (3)) OPTIONAL, --- код страны
+  mnc [1] NumericString (SIZE (3)) OPTIONAL  --- код ОРИ
+}
+
+--- виды информационных сервисов, предоставляемых ОРИ для пользователей
+oriServices TAGGED ::= {
+  OID {sorm-report-dictionary-ori-services}
+  DATA SEQUENCE OF OriServiceRecord
+}
+
+OriServiceRecord ::= SEQUENCE {
+ telco-id TelcoID,                          --- идентификатор ИС ОРИ
+ service-id INTEGER (0 .. 65535),           --- идентификатор сервиса
+ description UTF8String (SIZE (1 .. 256)),  --- описание
+ begin-time DateAndTime,                    --- время начала действия
+ end-time DateAndTime OPTIONAL              --- время конца действия
+}
+
+--- виды событий, регистрируемых ИС ОРИ при взаимодействии ИС ОРИ с пользователем
+oriEvents TAGGED ::= {
+  OID {sorm-report-dictionary-ori-events}
+  DATA SEQUENCE OF OriEventRecord
+}
+
+OriEventRecord ::= SEQUENCE {
+  telco-id TelcoID,                         --- идентификатор ИС ОРИ
+  service-id INTEGER (0 .. 65535),          --- идентификатор сервиса
+  event-id INTEGER (0 .. 65535),            --- идентификатор события
+  description UTF8String (SIZE (1 .. 256)), --- описание
+  begin-time DateAndTime,                   --- время начала действия
+  end-time DateAndTime OPTIONAL             --- время конца действия
+}
+
+--- типы информационных ресурсов, создаваемых пользователями в ИС ОРИ
+oriResources TAGGED ::= {
+  OID {sorm-report-dictionary-ori-resources}
+  DATA SEQUENCE OF OriResourceRecord
+}
+
+OriResourceRecord ::= SEQUENCE {
+  telco-id TelcoID,                         --- идентификатор ИС ОРИ
+  service-id INTEGER (0 .. 65535),          --- идентификатор сервиса
+  resource-id INTEGER (0 .. 65535),         --- идентификатор ресурса
+  description UTF8String (SIZE (1 .. 256)), --- описание
+  begin-time DateAndTime,                   --- время начала действия
+  end-time DateAndTime OPTIONAL             --- время конца действия
+}
+
+--- типы пользователей, обслуживаемых ИС ОРИ
+oriUserTypes TAGGED ::= {
+  OID {sorm-report-dictionary-ori-user-types}
+  DATA SEQUENCE OF OriUserTypeRecord
+}
+
+OriUserTypeRecord ::= SEQUENCE {
+  telco-id TelcoID,                         --- идентификатор ИС ОРИ
+  service-id INTEGER (0 .. 65535),          --- идентификатор сервиса
+  user-type-id INTEGER (0 .. 65535),        --- тип пользователя
+  description UTF8String (SIZE (1 .. 256)), --- описание
+  begin-time DateAndTime,                   --- время начала действия
+  end-time DateAndTime OPTIONAL             --- время конца действия
+}
+
+--- виды платежных услуг (платежных сервисов), используемых ОРИ
+oriPaymentServices TAGGED ::= {
+  OID {sorm-report-dictionary-ori-payment-services}
+  DATA SEQUENCE OF OriPaymentServiceRecord
+}
+
+OriPaymentServiceRecord ::= SEQUENCE {
+  telco-id TelcoID,                             --- идентификатор ИС ОРИ
+  service-id INTEGER (0 .. 65535),              --- идентификатор сервиса
+  payment-service-id  INTEGER  (0  .. 65535),   --- идентификатор платежной услуги
+  description UTF8String (SIZE (1 .. 256)),     --- описание
+  begin-time DateAndTime,                       --- время начала действия
+  end-time DateAndTime OPTIONAL                 --- время конца действия
+}
+
+END
